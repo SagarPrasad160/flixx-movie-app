@@ -2,6 +2,12 @@
 
 const globalState = {
   currentPath: window.location.pathname,
+  search: {
+    type: "",
+    term: "",
+    page: 1,
+    totalPages: 1,
+  },
 };
 
 const showActiveLink = () => {
@@ -253,6 +259,72 @@ const initSwipper = () => {
   });
 };
 
+const searchData = async () => {
+  const apiKey = "986a1cb8c72d2bdcd097bc7e63280665";
+  const url = "https://api.themoviedb.org/3/";
+
+  const response = await fetch(
+    `${url}search/${globalState.search.type}?api_key=${apiKey}&query=${globalState.search.term}`
+  );
+  const data = await response.json();
+  return data;
+};
+
+const search = async () => {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+
+  globalState.search.type = urlParams.get("type");
+  globalState.search.term = urlParams.get("search-term");
+
+  if (globalState.search.term !== "" && globalState.search.term !== null) {
+    // search the results
+    const { results } = await searchData();
+    console.log(results);
+    if (results.length === 0) {
+      alert("No Search Results Found");
+    } else {
+      results.map((result) => {
+        const div = document.createElement("div");
+        div.classList.add("card");
+        div.innerHTML = `
+        <a href="${globalState.search.type}-details.html?id=${result.id}">
+        ${
+          result.poster_path
+            ? ` <img
+        src="https://image.tmdb.org/t/p/w500${result.poster_path}"
+        class="card-img-top"
+        alt="_ Title"
+      />`
+            : ` <img
+      src="images/no-image.jpg"
+      class="card-img-top"
+      alt="Movie Title"
+    />`
+        }
+         
+        </a>
+        <div class="card-body">
+          <h5 class="card-title">${
+            globalState.search.type === "movie" ? result.title : result.name
+          }</h5>
+          <p class="card-text">
+            <small class="text-muted">Release Date: ${
+              globalState.search.type === "movie"
+                ? result.release_date
+                : result.first_air_date
+            }</small>
+          </p>
+        </div>
+            `;
+        document.querySelector("#search-results").appendChild(div);
+      });
+    }
+  } else {
+    alert("Please enter a search term!");
+  }
+};
+
 const addCommasToNumber = (number) => {
   // Convert the number to a string
   let numberStr = number.toString();
@@ -290,7 +362,7 @@ function init() {
       getMovieDetails();
       break;
     case "/search.html":
-      console.log("Search Page");
+      search();
       break;
     default:
       break;
