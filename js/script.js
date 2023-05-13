@@ -52,7 +52,7 @@ const getPopularShows = async () => {
     const div = document.createElement("div");
     div.classList.add("card");
     div.innerHTML = `
-    <a href="movie-details.html?id=${show.id}">
+    <a href="tv-details.html?id=${show.id}">
     ${
       show.poster_path
         ? ` <img
@@ -143,6 +143,69 @@ alt="Movie Title"
   document.querySelector("#movie-details").appendChild(div);
 };
 
+const getShowDetails = async () => {
+  const showId = window.location.search.split("=")[1];
+  const show = await fetchData(`tv/${showId}`);
+  console.log(show);
+  const div = document.createElement("div");
+  div.innerHTML = `
+  <div class="details-top">
+  <div>
+  ${
+    show.poster_path
+      ? ` <img
+  src="https://image.tmdb.org/t/p/w500${show.poster_path}"
+  class="card-img-top"
+  alt="${show.title}"
+/>`
+      : ` <img
+src="images/no-image.jpg"
+class="card-img-top"
+alt="Movie Title"
+/>`
+  }
+  </div>
+  <div>
+    <h2>${show.name}</h2>
+    <p>
+      <i class="fas fa-star text-primary"></i>
+      ${show.vote_average.toFixed(1)} / 10
+    </p>
+    <p class="text-muted">Release Date: XX/XX/XXXX</p>
+    <p>
+      ${show.overview}
+    </p>
+    <h5>Genres</h5>
+    <ul class="list-group">
+    ${show.genres.map((genre) => `<li>${genre.name}</li>`).join("")}
+    </ul>
+    <a href="${
+      show.homepage
+    }" target="_blank" class="btn">Visit Show Homepage</a>
+  </div>
+</div>
+<div class="details-bottom">
+  <h2>Show Info</h2>
+  <ul>
+    <li><span class="text-secondary">Number Of Episodes:</span>${
+      show.number_of_episodes
+    }</li>
+    <li>
+      <span class="text-secondary">Last Episode To Air:</span> 
+      ${show.last_air_date}
+    </li>
+    <li><span class="text-secondary">Status:</span>${show.status}</li>
+  </ul>
+  <h4>Production Companies</h4>
+  <div class="list-group">${show.production_companies
+    .map((company) => `<div>${company.name}</div>`)
+    .join("")}</div></div>
+</div>
+  `;
+
+  document.querySelector("#show-details").appendChild(div);
+};
+
 const addCommasToNumber = (number) => {
   // Convert the number to a string
   let numberStr = number.toString();
@@ -173,7 +236,7 @@ function init() {
       getPopularShows();
       break;
     case "/tv-details.html":
-      console.log("TV details");
+      getShowDetails();
       break;
     case "/movie-details.html":
       getMovieDetails();
