@@ -7,6 +7,7 @@ const globalState = {
     term: "",
     page: 1,
     totalPages: 1,
+    totalResults: 0,
   },
 };
 
@@ -264,7 +265,7 @@ const searchData = async () => {
   const url = "https://api.themoviedb.org/3/";
 
   const response = await fetch(
-    `${url}search/${globalState.search.type}?api_key=${apiKey}&query=${globalState.search.term}`
+    `${url}search/${globalState.search.type}?api_key=${apiKey}&query=${globalState.search.term}&page=${globalState.search.page}`
   );
   const data = await response.json();
   return data;
@@ -279,15 +280,34 @@ const search = async () => {
 
   if (globalState.search.term !== "" && globalState.search.term !== null) {
     // search the results
-    const { results } = await searchData();
+    const { results, total_pages, page, total_results } = await searchData();
+
+    globalState.search.page = page;
+    globalState.search.totalPages = total_pages;
+    globalState.search.totalResults = total_results;
+
     console.log(results);
+
     if (results.length === 0) {
       alert("No Search Results Found");
     } else {
-      results.map((result) => {
-        const div = document.createElement("div");
-        div.classList.add("card");
-        div.innerHTML = `
+      displayResults(results);
+    }
+  } else {
+    alert("Please enter a search term!");
+  }
+};
+
+const displayResults = (results) => {
+  // clear previos results
+  document.querySelector("#search-results").innerHTML = "";
+  document.querySelector("#search-results-heading").innerHTML = "";
+  document.querySelector("#pagination").innerHTML = "";
+
+  results.map((result) => {
+    const div = document.createElement("div");
+    div.classList.add("card");
+    div.innerHTML = `
         <a href="${globalState.search.type}-details.html?id=${result.id}">
         ${
           result.poster_path
@@ -317,12 +337,47 @@ const search = async () => {
           </p>
         </div>
             `;
-        document.querySelector("#search-results").appendChild(div);
-      });
-    }
-  } else {
-    alert("Please enter a search term!");
+    document.querySelector("#search-results-heading").innerHTML = `
+        <h2>${results.length} of ${globalState.search.totalResults} Results for ${globalState.search.term}</h2>
+        `;
+    document.querySelector("#search-results").appendChild(div);
+  });
+  displayPagination();
+};
+
+const displayPagination = () => {
+  const div = document.createElement("div");
+  div.classList.add("pagination");
+  div.innerHTML = `
+  <button class="btn btn-primary" id="prev">Prev</button>
+  <button class="btn btn-primary" id="next">Next</button>
+  <div class="page-counter">Page ${globalState.search.page} of ${globalState.search.totalPages}</div>
+    `;
+  document.querySelector("#pagination").appendChild(div);
+
+  // disable prev button on page 1
+  if (globalState.search.page === 1) {
+    document.querySelector("#prev").disabled = true;
   }
+
+  // disable next button on last page
+  if (globalState.search.page === globalState.search.totalPages) {
+    document.querySelector("#next").disabled = true;
+  }
+
+  // add pagination to next
+  document.querySelector("#next").addEventListener("click", async () => {
+    globalState.search.page++;
+    const { results } = await searchData();
+    displayResults(results);
+  });
+
+  // add pagination to previous
+  document.querySelector("#prev").addEventListener("click", async () => {
+    globalState.search.page--;
+    const { results } = await searchData();
+    displayResults(results);
+  });
 };
 
 const addCommasToNumber = (number) => {
