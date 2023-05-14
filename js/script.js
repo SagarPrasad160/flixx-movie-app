@@ -180,7 +180,7 @@ alt="Movie Title"
       <i class="fas fa-star text-primary"></i>
       ${show.vote_average.toFixed(1)} / 10
     </p>
-    <p class="text-muted">Release Date: XX/XX/XXXX</p>
+    <p class="text-muted">Release Date: ${show.first_air_date}</p>
     <p>
       ${show.overview}
     </p>
@@ -391,12 +391,22 @@ const addCommasToNumber = (number) => {
   return numberStr;
 };
 
+const showSpinner = () => {
+  document.querySelector(".spinner").classList.add("show");
+};
+
+const hideSpinner = () => {
+  document.querySelector(".spinner").classList.remove("show");
+};
+
 const fetchData = async (endpoint) => {
+  showSpinner();
   const apiKey = "986a1cb8c72d2bdcd097bc7e63280665";
   const url = "https://api.themoviedb.org/3/";
 
   const response = await fetch(`${url}${endpoint}?api_key=${apiKey}`);
   const data = await response.json();
+  hideSpinner();
   return data;
 };
 
